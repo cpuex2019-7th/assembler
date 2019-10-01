@@ -1,1 +1,1 @@
-addi t0, zero, 1
+srli t0, t0, 31
