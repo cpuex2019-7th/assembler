@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 import sys
 import struct
-from instructions import instruction_specs
-from encode import encoder, int_to_bit, bit_to_int
+from .instructions import instruction_specs
+from .encode import encoder, int_to_bit, bit_to_int
     
 def asm_lines(lines):
     labels = {}  # key: symbol_name, value: offset
@@ -105,10 +105,13 @@ def asm_files(flist):
             lines.extend(f.read().strip().split('\n'))
     return asm_lines(lines)
 
-if __name__ == '__main__':
+def main():
     if len(sys.argv) <= 2:
-        print("python asm.py <output binary name> <hoge.S> [<foobar.S> ...]")
+        print("{} <output binary name> <hoge.S> [<foobar.S> ...]".format(sys.argv[0]))
         exit(1)
 
     with open(sys.argv[1], 'wb') as f:
         f.write(asm_files(sys.argv[2:]))
+
+if __name__ == '__main__':
+    main()        

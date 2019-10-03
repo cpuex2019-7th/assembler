@@ -1,4 +1,4 @@
-from registers import register_to_int
+from .registers import register_to_int
 
 def to_int(s):
     if isinstance(s, int):

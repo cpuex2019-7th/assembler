@@ -3,5 +3,6 @@
 This is rv32im assembler.
 
 ```sh
-python asm.py <output file name> <hoge.S> [<foobar.S> ...]
+pip install github+https://github.com/cpuex2019-7th/assembler
+cpuex_asm <output file name> <hoge.S> [<foobar.S> ...]
 ```

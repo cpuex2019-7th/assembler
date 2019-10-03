@@ -1,10 +1,14 @@
 from setuptools import setup, find_packages
 
 setup(
-    name='cpuex-asm',
+    name='cpuex_asm',
     version="0.0.1",
-    description="cpuex-asm",
-    long_description="cpuex2019-7th asm",
     author='Takashi Yoneuchi',
     author_email='takahsi.yoneuchi@shift-js.info',
+    packages = ['cpuex_asm'],
+    entry_points={
+        "console_scripts": [
+            "cpuex_asm=cpuex_asm.asm:main"
+        ]
+    },
 )
