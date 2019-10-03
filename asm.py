@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import sys
 import struct
 from instructions import instruction_specs

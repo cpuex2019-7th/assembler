@@ -1,1 +1,1 @@
-srli t0, t0, 31
+addi t0, t0, 0x7FF
