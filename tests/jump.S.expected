@@ -1,0 +1,7 @@
+addi t0, zero, 0x1
+jal zero, 0xc 
+addi t1, zero, 0x2
+jal zero, 0xc 
+addi t1, zero, 0x3
+jal zero, 0xfffffff4 
+addi zero, zero, 0x0

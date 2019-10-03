@@ -1,1 +1,1 @@
-li t0, 0x7FFFFFFF
+li t0, 0x7fffffff
