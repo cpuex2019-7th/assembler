@@ -1,33 +1,31 @@
 import sys
 import struct
 from instructions import instruction_specs
-from encode import encoder
+from encode import encoder, int_to_bit, bit_to_int
     
 def asm_lines(lines):
     labels = {}  # key: symbol_name, value: offset
     instructions = []
     jumps = []
 
-    # asm parse lines
+    # parse lines and emit machine codes
     ################
     for index, raw_l in enumerate(lines):
+        # pre-processing
         line_num = index + 1    
         stripped_line = raw_l.strip().split(';')[0].strip()
         if stripped_line == '':
-            continue
-        
+            continue        
         components = list(map(lambda y: y.strip(), stripped_line.split()))
-                                                     
+
         if components[0].startswith('.'): # directive
             pass # TODO
         elif components[0].endswith(':'): # labels
             label = components[0] [:-1]
             offset = len(instructions) * 4
-
             if label in labels:
                 print("[-] label name duplicated: {}".format(label))
                 exit(1)
-
             labels[label] = offset            
         else: # instructions            
             instr_name = components[0]
@@ -51,6 +49,15 @@ def asm_lines(lines):
                     target_label = args[0]
                     jumps.append((instr_name, len(instructions), target_label, line_num))
                     instructions.append(0) # 0 is temp addr
+                elif instr_name == "li" and len(args) == 2:
+                    rd = args[0]
+                    imm_32 = int_to_bit(args[1], 32)
+                    imm_addi = bit_to_int(imm_32 & 0xFFF, 12)
+                    imm_lui = bit_to_int((imm_32-imm_addi) & 0xFFFFF000, 32)
+                    lui_spec = instruction_specs["lui"]
+                    addi_spec = instruction_specs["addi"]
+                    instructions.append(encoder[lui_spec["type"]](lui_spec, [rd, imm_lui]))
+                    instructions.append(encoder[addi_spec["type"]](addi_spec, [rd, rd, imm_addi]))
             except OverflowError:
                 print("[-] overflow occcuerd at {}".format(line_num))
                 exit(1)

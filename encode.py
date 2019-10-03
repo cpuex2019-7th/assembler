@@ -1,13 +1,29 @@
 from registers import register_to_int
 
-def to_uint(s, bitwidth):
-    s = int(s)
-    if 0 <= s and s < 2 ** bitwidth:
+def to_int(s):
+    if isinstance(s, int):
         return s
-    elif 2 ** bitwidth + s > 0:
-        return 2 ** bitwidth + s
+    return int(s[2:], 16) if s.startswith("0x") else int(s)
+
+def bit_to_int(s, bitwidth):
+    if s < 2 ** (bitwidth-1):
+        return s
     else:
-        raise OverflowError
+        return s - 2 ** bitwidth
+    
+def int_to_bit(s, bitwidth):
+    # here we assume MSB is for sign
+    s = to_int(s) 
+    if 0 <= s:
+        if s < 2 ** (bitwidth-1):
+            return s
+        else:
+            raise OverflowError
+    else: # s is a negative number
+        if 0 <= 2 ** (bitwidth-1) + s:
+            return 2 ** bitwidth + s
+        else:
+            raise OverflowError
         
 # rd, rs1, rs2 
 def encode_r(spec, args):
@@ -24,7 +40,7 @@ def encode_i(spec, args):
         raise IndexError
     rd = register_to_int(args[0])
     rs1 = register_to_int(args[1])
-    imm = to_uint(args[2], 5)
+    imm = int_to_bit(args[2], 12)
     return spec["opcode"] | (rd << 7) | (spec["funct3"] << 12) | (rs1 << 15) | (imm << 20) | ((spec["funct7"] << 25) if "func7" in spec else 0)
 
 # rs1, rs2, imm
@@ -34,7 +50,7 @@ def encode_b(spec, args):
     
     rs1 = register_to_int(args[0])
     rs2 = register_to_int(args[1])
-    imm = to_uint(args[2], 13)
+    imm = int_to_bit(args[2], 13)
     
     imm11 = (imm & (0b1 << 11)) >> 11
     imm4to1 = (imm & 0b11110) >> 1
@@ -52,7 +68,7 @@ def encode_s(spec, args):
     # (rs1+imm <- rs2)
     rs2 = register_to_int(args[1])
     rs1 = register_to_int(args[0])
-    imm = to_uint(args[2], 12)
+    imm = int_to_bit(args[2], 12)
     imm4to0 = imm & 0b11111
     imm11to5 = (imm & 0b111111100000) >> 5
     return spec["opcode"] | (imm4to0 << 7) | (spec["funct3"] << 12) | (rs1 << 15) | (rs2 << 20) | (imm11to5 << 20)    
@@ -62,15 +78,15 @@ def encode_u(spec, args):
     if len(args) != 2:
         raise IndexError
     rd = register_to_int(args[0])
-    imm = to_uint(args[1], 32)
-    return spec["opcode"] | (rd << 7) | (imm & ~(0b111111111111))
+    imm = int_to_bit(args[1], 32)
+    return spec["opcode"] | (rd << 7) | (imm & 0xFFFFF000)
 
 # rd, imm
 def encode_j(spec, args):
     if len(args) != 2:
         raise IndexError
     rd = register_to_int(args[0])
-    imm = to_uint(args[1], 21)
+    imm = int_to_bit(args[1], 21)
     imm19to12 = (imm &  0b11111111000000000000) >> 12
     imm11 = (imm & 0b100000000000) >> 11
     imm10to1 = (imm & 0b11111111110) >> 1
