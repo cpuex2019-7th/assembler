@@ -1,2 +1,0 @@
-lui t0, 0x80000000
-addi t0, t0, 0xffffffff

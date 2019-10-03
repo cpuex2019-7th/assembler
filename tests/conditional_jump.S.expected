@@ -1,9 +1,0 @@
-addi t0, zero, 0x1
-addi t1, zero, 0x1
-beq t0, t1, 0x8 
-jal zero, 0xc 
-addi t2, zero, 0x3
-jal zero, 0xc 
-addi t2, zero, 0x4
-jal zero, 0x4 
-addi zero, zero, 0x1

@@ -9,4 +9,4 @@ neq:
     addi t2, zero, 4
     j ret
 ret:
-    addi zero, zero, 1 ; nop   
+    addi a0, t2, 0 ; nop   
