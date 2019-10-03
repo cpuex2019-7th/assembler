@@ -10,7 +10,8 @@ def asm_lines(lines):
 
     # asm parse lines
     ################
-    for line_num, raw_l in enumerate(lines):
+    for index, raw_l in enumerate(lines):
+        line_num = index + 1    
         stripped_line = raw_l.strip().split(';')[0].strip()
         if stripped_line == '':
             continue
@@ -35,14 +36,21 @@ def asm_lines(lines):
             try:
                 if instr_name in instruction_specs:
                     spec = instruction_specs[instr_name]
-                    if spec["type"] in encoder:
+                    if instr_name in ["beq", "bne", "blt", "bge", "bltu", "bgeu"] \
+                       and len(args) == 3 \
+                       and not args[2].isdigit(): # label jumping
+                        target_label = args[2]
+                        jumps.append((instr_name, len(instructions), target_label, line_num))
+                        # 0 is temp addr
+                        instructions.append(encoder[spec["type"]](spec, [args[0], args[1], 0]))
+                    elif spec["type"] in encoder:
                         instructions.append(encoder[spec["type"]](spec, args))
                     else:
                         raise Exception
                 elif instr_name == "j" and len(args) == 1:
                     target_label = args[0]
                     jumps.append((instr_name, len(instructions), target_label, line_num))
-                    instructions.append(0) # this 0 is for tmp
+                    instructions.append(0) # 0 is temp addr
             except OverflowError:
                 print("[-] overflow occcuerd at {}".format(line_num))
                 exit(1)
@@ -63,7 +71,12 @@ def asm_lines(lines):
                 current_pc = i * 4
                 imm = labels[target_label] - current_pc
                 spec = instruction_specs["jal"]
-                instructions[i] =  encoder[spec["type"]](spec, ["x0", imm])
+                instructions[i] = encoder[spec["type"]](spec, ["x0", imm])
+            elif instr_name in ["beq", "bne", "blt", "bge", "bltu", "bgeu"]:
+                current_pc = i * 4
+                imm = labels[target_label] - current_pc
+                spec = instruction_specs[instr_name]                
+                instructions[i] |= encoder[spec["type"]](spec, ["x0", "x0", imm])
             else:
                 print("[-] label jumping with {} is not implemented yet. sorry.".format(instr_name))
                 exit(1)

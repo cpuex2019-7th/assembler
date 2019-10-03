@@ -31,6 +31,7 @@ def encode_i(spec, args):
 def encode_b(spec, args):
     if len(args) != 3:
         raise IndexError
+    
     rs1 = register_to_int(args[0])
     rs2 = register_to_int(args[1])
     imm = to_uint(args[2], 13)
