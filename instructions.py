@@ -135,12 +135,6 @@ instruction_specs = {
         "funct3": 0b101,
         "funct7": 0b0100000,
     },
-    "srai" : {
-        "type": "i",
-        "opcode": 0b0010011,
-        "funct3": 0b101,
-        "funct7": 0b0100000,
-    },
     "add" : {
         "type": "r",
         "opcode": 0b0110011,
