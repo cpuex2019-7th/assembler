@@ -74,11 +74,12 @@ def encode_s(spec, args):
     return spec["opcode"] | (imm4to0 << 7) | (spec["funct3"] << 12) | (rs1 << 15) | (rs2 << 20) | (imm11to5 << 20)    
 
 # rd, imm
+# imm will be sll-ed by 12 
 def encode_u(spec, args):
     if len(args) != 2:
         raise IndexError
     rd = register_to_int(args[0])
-    imm = int_to_bit(args[1], 32)
+    imm = int_to_bit(args[1], 20) << 12
     return spec["opcode"] | (rd << 7) | (imm & 0xFFFFF000)
 
 # rd, imm

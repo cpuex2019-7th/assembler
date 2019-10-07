@@ -8,7 +8,8 @@ setup(
     packages = ['cpuex_asm'],
     entry_points={
         "console_scripts": [
-            "cpuex_asm=cpuex_asm.asm:main"
+            "cpuex_asm=cpuex_asm.asm:main",
+            "cpuex_bin2coe=cpuex_asm.bin2coe:main"
         ]
     },
 )

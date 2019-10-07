@@ -1,0 +1,3 @@
+addi zero, zero, 0
+addi zero, zero, 0
+auipc a0, 524287
