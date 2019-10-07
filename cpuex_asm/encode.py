@@ -66,8 +66,8 @@ def encode_s(spec, args):
     # should be interpreted as
     # s* rs2, rs1, imm 
     # (rs1+imm <- rs2)
-    rs2 = register_to_int(args[1])
-    rs1 = register_to_int(args[0])
+    rs2 = register_to_int(args[0])
+    rs1 = register_to_int(args[1])
     imm = int_to_bit(args[2], 12)
     imm4to0 = imm & 0b11111
     imm11to5 = (imm & 0b111111100000) >> 5

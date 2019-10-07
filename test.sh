@@ -12,7 +12,12 @@ for f in `ls tests/*.S`; do
         diff $f.disasm.expected debug.output.disasm
     fi
 
-    cpuex_sim debug.output.o > debug.output.exec
+    if [ -e $f.input ]; then
+        cpuex_sim debug.output.o -i $f.input -o debug.uart.output > debug.output.exec
+    else
+        cpuex_sim debug.output.o -o debug.uart.output > debug.output.exec
+    fi
+    
     diff -b debug.output.exec $f.exec.expected > /dev/null
     ret=$?
     if [ $ret -eq 0 ] ;then
@@ -21,6 +26,17 @@ for f in `ls tests/*.S`; do
         printf "\e[31m$f: exec failed.\e[m\n"
         diff $f.exec.expected debug.output.exec
     fi
+
+    if [ -e $f.uart.expected ] ;then
+       diff -b debug.uart.output $f.uart.expected > /dev/null
+       ret=$?
+       if [ $ret -eq 0 ] ;then
+           printf "\e[32m$f: uart passed.\e[m\n"
+       else 
+           printf "\e[31m$f: uart failed.\e[m\n"
+           diff $f.uart.expected debug.output.uart
+       fi
+    fi       
 done
 
 rm -rf debug.*

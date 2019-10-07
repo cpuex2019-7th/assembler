@@ -86,8 +86,7 @@ def asm_lines(lines):
                                                                             line_num))
             except NotImplementedError:                
                 exit_with_error("[-] instruction not found at {}: {}".format(line_num,
-                                                                             instr_name))
-                    
+                                                                             instr_name))                    
     # resolve labels
     ################
     for instr_name, i, target_label, line_num in jumps:
