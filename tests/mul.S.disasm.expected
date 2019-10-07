@@ -1,0 +1,5 @@
+lui t0, 524288
+addi t0, t0, -1
+lui t1, 524288
+addi t1, t1, -1
+mul a0, t0, t1    

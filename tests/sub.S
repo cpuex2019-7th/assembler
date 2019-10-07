@@ -1,0 +1,3 @@
+    addi t0, zero, 1
+    addi t1, zero, 3
+    sub a0, t0, t1
