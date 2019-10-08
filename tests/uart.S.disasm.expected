@@ -1,11 +1,5 @@
-lui t0, 279604
-addi t0, t0, 577
-lui t1, 279604
-addi t1, t1, 577
+addi t0, zero, 65
 lui sp, 520192
 addi sp, sp, 0
-sb t0, sp, 0
-sb t1, sp, 4
-sh t0, sp, 8
-sh t1, sp, 16
-sw t0, sp, 24
+sb t0, sp, 4
+jal zero, -4 ; jumps to 0000000c
