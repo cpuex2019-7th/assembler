@@ -1,0 +1,7 @@
+addi t1, zero, 0
+jal a0, 12 ; jumps to 00000010
+add t1, t1, a0
+jal a0, 12 ; jumps to 00000018
+add t1, t1, a0
+jal a0, -12 ; jumps to 00000008
+add a0, t1, a0
