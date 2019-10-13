@@ -57,8 +57,8 @@ def asm_lines(lines):
                     
                     # if the current instruction is one of conditional jumps and the instruction uses a label,
                     # we have to resolve it later.
-                    # all conditional jump instructions take three ops; rs1, rs2, and rd.
                     if (instr_name in CONDITIONAL_JUMP_INSTRS \
+                        # all conditional jump instructions take three ops; rs1, rs2, and rd.
                         and len(args) == 3 \
                         and not args[2].isdigit()):
                         target_label = args[2]
@@ -66,6 +66,7 @@ def asm_lines(lines):
                         # 0 is temp addr
                         instructions.append(encoder[spec["type"]](spec, [args[0], args[1], 0]))
                     elif (instr_name == "jal" \
+                        # jal takes two ops; rd and imm.
                         and len(args) == 2 \
                         and not args[1].isdigit()):
                         target_label = args[1]
@@ -73,9 +74,10 @@ def asm_lines(lines):
                         # 0 is temp addr
                         instructions.append(encoder[spec["type"]](spec, [args[0], 0]))
                     elif spec["type"] in encoder:
+                        # if the instruction does not cause jumps, it can be encoded directly.
                         instructions.append(encoder[spec["type"]](spec, args))
-                        # umm, here we got a weird metadata for the instruction ... 
-                    else:                        
+                    else:
+                        # umm, here we got a weird metadata for the instruction ...
                         raise Exception
                 elif instr_name in syntax_sugars and syntax_sugars[instr_name]['arg_num'] == len(args):
                     if instr_name == "j":
