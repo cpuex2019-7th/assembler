@@ -244,5 +244,106 @@ instruction_specs = {
         "opcode": 0b0110011,
         "funct3": 0b111,
         "funct7": 0b0000001,
-    },    
+    },
+
+    # rv32f
+    "flw": {
+        "type": "i",
+        "opcode": 0b0000111,
+        "funct3": 0b010,
+    },
+    "fsw": {
+        "type": "s",
+        "opcode": 0b0100111,
+        "funct3": 0b010,
+    },
+    "fadds": {
+        "type": "r",
+        "opcode": 0b1010011,
+        "funct3": 0b000,
+        "funct7": 0b0000000
+    },
+    "fsubs": {
+        "type": "r",
+        "opcode": 0b1010011,
+        "funct3": 0b000,
+        "funct7": 0b0000100
+    },
+    "fmuls": {
+        "type": "r",
+        "opcode": 0b1010011,
+        "funct3": 0b000,
+        "funct7": 0b0001000
+    },
+    "fdivs": {
+        "type": "r",
+        "opcode": 0b1010011,
+        "funct3": 0b000,
+        "funct7": 0b0001100
+    },
+    "fsqrts": {
+        "type": "r",
+        "opcode": 0b1010011,
+        "funct3": 0b000,
+        "funct7": 0b0101100,
+        "rs2": 0b00000,
+    },
+    "fsgnjs": {
+        "type": "r",
+        "opcode": 0b1010011,
+        "funct3": 0b000,
+        "funct7": 0b0010000
+    },
+    "fsgnjns": {
+        "type": "r",
+        "opcode": 0b1010011,
+        "funct3": 0b001,
+        "funct7": 0b0010000
+    },
+    "fsgnjxs": {
+        "type": "r",
+        "opcode": 0b1010011,
+        "funct3": 0b010,
+        "funct7": 0b0010000
+    },
+    "fcvtws": {
+        "type": "r",
+        "opcode": 0b1010011,
+        "funct3": 0b000,
+        "funct7": 0b1100000,
+        "rs2": 0b00000,
+    },
+    "fmvxws": {
+        "type": "r",
+        "opcode": 0b1010011,
+        "funct3": 0b000,
+        "funct7": 0b1110000,
+        "rs2": 0b00000,
+    },
+    "feqs": {
+        "type": "r",
+        "opcode": 0b1010011,
+        "funct3": 0b010,
+        "funct7": 0b1010000
+    },
+    "fles": {
+        "type": "r",
+        "opcode": 0b1010011,
+        "funct3": 0b000,
+        "funct7": 0b1010000
+    },
+    "fcvsws": {
+        "type": "r",
+        "opcode": 0b1010011,
+        "funct3": 0b000,
+        "funct7": 0b1101000,
+        "rs2": 0b00000,
+    },
+    "fmvwx": {
+        "type": "r",
+        "opcode": 0b1010011,
+        "funct3": 0b000,
+        "funct7": 0b1111000,
+        "rs2": 0b00000,
+    },
 }

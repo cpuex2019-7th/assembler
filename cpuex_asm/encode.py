@@ -27,12 +27,14 @@ def int_to_bit(s, bitwidth):
         
 # rd, rs1, rs2 
 def encode_r(spec, args):
-    if len(args) != 3:
+    if ("rs2" in spec and len(args) == 2) or ("rs2" not in spec and len(args) == 3):
+        rd = register_to_int(args[0])
+        rs1 = register_to_int(args[1])
+        rs2 = register_to_int(args[2])
+        return spec["opcode"] | (rd << 7) | (spec["funct3"] << 12) | (rs1 << 15) | (rs2 << 20) | (spec["funct7"] << 25) | (spec["rs2"] if "rs2" in spec else 0)
+    else:
         raise IndexError
-    rd = register_to_int(args[0])
-    rs1 = register_to_int(args[1])
-    rs2 = register_to_int(args[2])
-    return spec["opcode"] | (rd << 7) | (spec["funct3"] << 12) | (rs1 << 15) | (rs2 << 20) | (spec["funct7"] << 25)
+
 
 # rd, rs1, imm
 def encode_i(spec, args):
