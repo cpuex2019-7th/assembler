@@ -13,6 +13,10 @@ def encode_ss_li(args):
         encoder[addi_spec["type"]](addi_spec, [rd, rd, imm_addi])
     ]
 
+def encode_liu(args):
+    lui_spec = instruction_specs["lui"]
+    return encoder[lui_spec["type"]](lui_spec, args)
+
 syntax_sugars = {
     "j": {
         "arg_num": 1,
@@ -21,4 +25,8 @@ syntax_sugars = {
         "arg_num": 2,        
         "encoder": encode_ss_li
     },
+    "liu": {
+        "arg_num": 2,
+        "encoder": encode_liu
+    }
 }
