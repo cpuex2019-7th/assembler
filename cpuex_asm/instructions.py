@@ -1,4 +1,4 @@
-instruction_specs = {
+oinstruction_specs = {
     # rv32i
     "lui" : {
         "type": "u",
@@ -306,7 +306,7 @@ instruction_specs = {
         "funct3": 0b010,
         "funct7": 0b0010000
     },
-    "fcvtw": {
+    "fcvtws": {
         "type": "r",
         "opcode": 0b1010011,
         "funct3": 0b000,
@@ -332,7 +332,7 @@ instruction_specs = {
         "funct3": 0b000,
         "funct7": 0b1010000
     },
-    "fcvsw": {
+    "fcvtsw": {
         "type": "r",
         "opcode": 0b1010011,
         "funct3": 0b000,
