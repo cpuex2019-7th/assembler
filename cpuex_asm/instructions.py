@@ -1,4 +1,4 @@
-oinstruction_specs = {
+instruction_specs = {
     # rv32i
     "lui" : {
         "type": "u",
