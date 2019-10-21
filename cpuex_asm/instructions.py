@@ -257,82 +257,82 @@ instruction_specs = {
         "opcode": 0b0100111,
         "funct3": 0b010,
     },
-    "fadds": {
+    "fadd": {
         "type": "r",
         "opcode": 0b1010011,
         "funct3": 0b000,
         "funct7": 0b0000000
     },
-    "fsubs": {
+    "fsub": {
         "type": "r",
         "opcode": 0b1010011,
         "funct3": 0b000,
         "funct7": 0b0000100
     },
-    "fmuls": {
+    "fmul": {
         "type": "r",
         "opcode": 0b1010011,
         "funct3": 0b000,
         "funct7": 0b0001000
     },
-    "fdivs": {
+    "fdiv": {
         "type": "r",
         "opcode": 0b1010011,
         "funct3": 0b000,
         "funct7": 0b0001100
     },
-    "fsqrts": {
+    "fsqrt": {
         "type": "r",
         "opcode": 0b1010011,
         "funct3": 0b000,
         "funct7": 0b0101100,
         "rs2": 0b00000,
     },
-    "fsgnjs": {
+    "fsgnj": {
         "type": "r",
         "opcode": 0b1010011,
         "funct3": 0b000,
         "funct7": 0b0010000
     },
-    "fsgnjns": {
+    "fsgnjn": {
         "type": "r",
         "opcode": 0b1010011,
         "funct3": 0b001,
         "funct7": 0b0010000
     },
-    "fsgnjxs": {
+    "fsgnjx": {
         "type": "r",
         "opcode": 0b1010011,
         "funct3": 0b010,
         "funct7": 0b0010000
     },
-    "fcvtws": {
+    "fcvtw": {
         "type": "r",
         "opcode": 0b1010011,
         "funct3": 0b000,
         "funct7": 0b1100000,
         "rs2": 0b00000,
     },
-    "fmvxws": {
+    "fmvxw": {
         "type": "r",
         "opcode": 0b1010011,
         "funct3": 0b000,
         "funct7": 0b1110000,
         "rs2": 0b00000,
     },
-    "feqs": {
+    "feq": {
         "type": "r",
         "opcode": 0b1010011,
         "funct3": 0b010,
         "funct7": 0b1010000
     },
-    "fles": {
+    "fle": {
         "type": "r",
         "opcode": 0b1010011,
         "funct3": 0b000,
         "funct7": 0b1010000
     },
-    "fcvsws": {
+    "fcvsw": {
         "type": "r",
         "opcode": 0b1010011,
         "funct3": 0b000,

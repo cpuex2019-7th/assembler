@@ -15,7 +15,7 @@ def asm_lines(lines):
     Asm given lines and returns machine codes in binary format. 
 
     Parameters
-    ----------
+o    ----------
     lines : list of str
         lines to be assembled.
 

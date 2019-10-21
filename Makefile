@@ -1,7 +1,7 @@
 .PHONY: install
 
 install:
-	pip install .
+	pip install . --upgrade
 
 test:
 	./test.sh

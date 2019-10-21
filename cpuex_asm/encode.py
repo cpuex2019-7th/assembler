@@ -5,11 +5,8 @@ def to_int(s):
         return s
     return int(s[2:], 16) if s.startswith("0x") else int(s)
 
-def bit_to_int(s, bitwidth):
-    if s < 2 ** (bitwidth-1):
-        return s
-    else:
-        return s - 2 ** bitwidth
+def bit_to_int(s, bitwidth):    
+    return s if s < 2 ** (bitwidth-1) else s - 2 ** bitwidth
     
 def int_to_bit(s, bitwidth):
     # here we assume MSB is for sign
@@ -30,7 +27,7 @@ def encode_r(spec, args):
     if ("rs2" in spec and len(args) == 2) or ("rs2" not in spec and len(args) == 3):
         rd = register_to_int(args[0])
         rs1 = register_to_int(args[1])
-        rs2 = register_to_int(args[2])
+        rs2 = spec["rs2"] if "rs2" in spec else register_to_int(args[2])
         return spec["opcode"] | (rd << 7) | (spec["funct3"] << 12) | (rs1 << 15) | (rs2 << 20) | (spec["funct7"] << 25) | (spec["rs2"] if "rs2" in spec else 0)
     else:
         raise IndexError
