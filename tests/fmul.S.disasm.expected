@@ -1,0 +1,8 @@
+lui t1, 259686
+addi t1, t1, 1638
+fmvwx ft1, t1
+lui t2, 263168
+addi t2, t2, 0
+fmvwx ft2, t2
+fmul ft0, ft1, ft2
+fmvxw a0, ft0
