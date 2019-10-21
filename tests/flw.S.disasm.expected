@@ -1,0 +1,7 @@
+lui t1, 259686
+addi t1, t1, 1638
+lui sp, 0
+addi sp, sp, 0
+sw t1, sp, 0
+flw ft0, sp, 0
+fmvxw a0, ft0
