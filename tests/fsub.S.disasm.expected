@@ -4,5 +4,5 @@ fmvwx ft1, t1
 lui t2, 263168
 addi t2, t2, 0
 fmvwx ft2, t2
-fadd ft0, ft1, ft2
+fsub ft0, ft1, ft2
 fmvxw a0, ft0
