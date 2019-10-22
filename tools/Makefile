@@ -1,9 +1,9 @@
 default: f2d d2f
 
-f2d:
+f2d: f2d.c
 	gcc -O2 -Wall f2d.c -o f2d
 
-d2f:
+d2f: d2f.c
 	gcc -O2 -Wall d2f.c -o d2f
 
 clean:
