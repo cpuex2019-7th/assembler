@@ -76,7 +76,7 @@ register_aliases = {
 def register_to_int(s):
     if s in register_aliases:
         return register_aliases[s]
-    elif s.startswith('x'):
+    elif s.startswith('x') or s.startswith('f'):
         return int(s[1:])
     else:
         print("[-] Invalid register name: {}".format(s))
