@@ -15,8 +15,15 @@ def exit_with_error(fmt):
 def is_num(s):
     return re.match(r'^(-)?(0x)?[0-9A-Fa-f][0-9A-Fa-f]*$', s) is not None
 
+def get_label(label):
+    label_inside = re.match(r"^\%lo\((.*)\)$", label)
+    if label_inside is not None:
+        return label_inside.groups()[0]
+    else:
+        return label
+    
 def get_label_imm(labels, label, pc):
-    label_inside = re.match(r"^%lo\((.*)\)$", label)
+    label_inside = re.match(r"^\%lo\((.*)\)$", label)
     if label_inside is not None:
         label = label_inside.groups()[0]
         return labels[label]
@@ -115,7 +122,7 @@ def asm_lines(lines):
     # resolve labels
     ################
     for instr_name, i, target_label, line_num in instrs_with_label:
-        if target_label in labels:
+        if get_label(target_label) in labels:
             if instr_name in instruction_specs:
                 spec = instruction_specs[instr_name]
                 imm = get_label_imm(labels, target_label, i)
