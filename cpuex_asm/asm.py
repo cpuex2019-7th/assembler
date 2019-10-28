@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 import sys
 import struct
+import string
 from .instructions import instruction_specs
 from .encode import encoder
 from .constant import CONDITIONAL_JUMP_INSTRS
@@ -27,7 +28,7 @@ o    ----------
     
     labels = {}  # key: symbol_name, value: offset
     instructions = []
-    jumps = []
+    instrs_with_label = []
 
     # parse lines and emit machine codes
     ################
@@ -55,26 +56,24 @@ o    ----------
                 if instr_name in instruction_specs:
                     spec = instruction_specs[instr_name]
                     
-                    # if the current instruction is one of conditional jumps and the instruction uses a label,
-                    # we have to resolve it later.
-                    if (instr_name in CONDITIONAL_JUMP_INSTRS \
-                        # all conditional jump instructions take three ops; rs1, rs2, and rd.
+                    if (spec["type"] in ["b", "i", "s"] \
                         and len(args) == 3 \
-                        and not args[2].isdigit()):
+                        and not (args[2].isdigit() \
+                                 or (args[2].startswith('0x') and set(args[2][2:]).issubset(set(string.hexdigits))))):
                         target_label = args[2]
-                        jumps.append((instr_name, len(instructions), target_label, line_num))
-                        # 0 is temp addr
+                        instrs_with_label.append((instr_name, len(instructions), target_label, line_num))
                         instructions.append(encoder[spec["type"]](spec, [args[0], args[1], 0]))
-                    elif (instr_name == "jal" \
-                        # jal takes two ops; rd and imm.
+                    elif (spec["type"] in ["j", "u"] \
                         and len(args) == 2 \
-                        and not args[1].isdigit()):
+                        and not (args[1].isdigit() \
+                                 or (args[1].startswith('0x') and set(args[1][2:]).issubset(set(string.hexdigits))))):
                         target_label = args[1]
-                        jumps.append((instr_name, len(instructions), target_label, line_num))
-                        # 0 is temp addr
-                        instructions.append(encoder[spec["type"]](spec, [args[0], 0]))
+                        instrs_with_label.append((instr_name, len(instructions), target_label, line_num))
+                        if spec["type"] == "u":
+                            instructions.append(encoder[spec["type"]](spec, [args[0], 0]))
+                        else: # 
+                            instructions.append(encoder[spec["type"]](spec, [args[0], 0]))
                     elif spec["type"] in encoder:
-                        # if the instruction does not cause jumps, it can be encoded directly.
                         instructions.append(encoder[spec["type"]](spec, args))
                     else:
                         # umm, here we got a weird metadata for the instruction ...
@@ -82,7 +81,7 @@ o    ----------
                 elif instr_name in syntax_sugars and syntax_sugars[instr_name]['arg_num'] == len(args):
                     if instr_name == "j":
                         target_label = args[0]
-                        jumps.append((instr_name, len(instructions), target_label, line_num))
+                        instrs_with_label.append(("jal", len(instructions), target_label, line_num))
                         instructions.append(0)
                     else:
                         instructions.extend(syntax_sugars[instr_name]['encoder'](args))                    
@@ -98,16 +97,17 @@ o    ----------
                                                                              instr_name))                    
     # resolve labels
     ################
-    for instr_name, i, target_label, line_num in jumps:
+    for instr_name, i, target_label, line_num in instrs_with_label:
         if target_label in labels:
             imm = labels[target_label] - i * 4
+            spec = instruction_specs[instr_name]                
             if instr_name == "j":
                 spec = instruction_specs["jal"]
                 instructions[i] = encoder[spec["type"]](spec, ["x0", imm])
-            elif instr_name in CONDITIONAL_JUMP_INSTRS:
+            elif spec["type"] in ["b", "i", "s"]:
                 spec = instruction_specs[instr_name]                
                 instructions[i] |= encoder[spec["type"]](spec, ["x0", "x0", imm])
-            elif instr_name == "jal":
+            elif spec["type"] in ["j", "u"]: # TODO: is this correct?
                 spec = instruction_specs[instr_name]                
                 instructions[i] |= encoder[spec["type"]](spec, ["x0", imm])
             else:
