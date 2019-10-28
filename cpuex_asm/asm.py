@@ -108,17 +108,28 @@ def asm_lines(lines):
     ################
     for instr_name, i, target_label, line_num in instrs_with_label:
         if target_label in labels:
-            imm = labels[target_label] - i * 4
             if instr_name in instruction_specs:
                 spec = instruction_specs[instr_name]
-                if spec["type"] in ["b", "i", "s"]:
+                if spec["type"] in ["b"]:
+                    imm = labels[target_label] - i * 4
                     instructions[i] |= encoder[spec["type"]](spec, ["x0", "x0", imm])
-                elif spec["type"] in ["j", "u"]: # TODO: is this correct?
+                elif spec["type"] in ["i", "s"]:
+                    imm = labels[target_label]
+                    instructions[i] |= encoder[spec["type"]](spec, ["x0", "x0", imm])                    
+                elif spec["type"] in ["j", "u"]:
+                    imm = labels[target_label] - i * 4
                     instructions[i] |= encoder[spec["type"]](spec, ["x0", imm])
                 else:
                     exit_with_error("[-] thinking_face")
-            elif instr_name in syntax_sugars:
+            elif instr_name in syntax_sugars:                
                 ss_spec = syntax_sugars[instr_name]
+                imm = 0
+                if ss_spec["type"] in ["j"]:
+                    imm = labels[target_label] - i * 4
+                elif ss_spec["type"] in ["i"]:
+                    imm = labels[target_label]
+                else:
+                    exit_with_error("[-] thinking_face")
                 imm_patches = ss_spec["encoder"](["x0"] * (ss_spec["arg_num"]-1) + [imm])
                 for offset in range(0, ss_spec["size"]):
                     instructions[i+offset] |= imm_patches[offset]

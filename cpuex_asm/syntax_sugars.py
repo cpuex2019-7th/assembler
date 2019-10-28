@@ -30,16 +30,19 @@ def encode_ss_liu(args):
 syntax_sugars = {
     "j": {
         "arg_num": 1,
+        "type": "j",
         "encoder": encode_ss_j,
         "size": 1,
     },
     "li": {
         "arg_num": 2,        
+        "type": "i",
         "encoder": encode_ss_li,
         "size": 2,
     },
     "liu": {
         "arg_num": 2,
+        "type": "i",
         "encoder": encode_ss_liu,
         "size": 1,
     }
