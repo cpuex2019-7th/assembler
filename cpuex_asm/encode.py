@@ -60,7 +60,7 @@ def encode_b(spec, args):
 # rs2, rs1, imm
 def encode_s(spec, args):
     if len(args) != 3:
-        raise IndexError
+        raise IndexError    
     # s* hoge, foo, bar
     # should be interpreted as
     # s* rs2, rs1, imm 
@@ -70,7 +70,7 @@ def encode_s(spec, args):
     imm = int_to_bit(args[2], 12)
     imm4to0 = imm & 0b11111
     imm11to5 = (imm & 0b111111100000) >> 5
-    return spec["opcode"] | (imm4to0 << 7) | (spec["funct3"] << 12) | (rs1 << 15) | (rs2 << 20) | (imm11to5 << 20)    
+    return spec["opcode"] | (imm4to0 << 7) | (spec["funct3"] << 12) | (rs1 << 15) | (rs2 << 20) | (imm11to5 << 25)    
 
 # rd, imm
 # imm will be sll-ed by 12 

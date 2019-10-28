@@ -1,0 +1,4 @@
+lui ra, 518876
+addi ra, ra, -273
+sw ra, sp, 34
+lw a0, sp, 34
