@@ -2,6 +2,7 @@
 import sys
 import struct
 import string
+import re
 from .instructions import instruction_specs
 from .encode import encoder
 from .constant import CONDITIONAL_JUMP_INSTRS
@@ -10,13 +11,16 @@ from .syntax_sugars import syntax_sugars
 def exit_with_error(fmt):
     print(fmt)
     exit(1)
+
+def is_num(s):
+    return re.match(r'^(-)?(0x)?[0-9A-Fa-f][0-9A-Fa-f]*$', s) is not None
     
 def asm_lines(lines):
     """
     Asm given lines and returns machine codes in binary format. 
 
     Parameters
-o    ----------
+    ----------
     lines : list of str
         lines to be assembled.
 
@@ -58,15 +62,13 @@ o    ----------
                     
                     if (spec["type"] in ["b", "i", "s"] \
                         and len(args) == 3 \
-                        and not (args[2].isdigit() \
-                                 or (args[2].startswith('0x') and set(args[2][2:]).issubset(set(string.hexdigits))))):
+                        and not is_num(args[2])):
                         target_label = args[2]
                         instrs_with_label.append((instr_name, len(instructions), target_label, line_num))
                         instructions.append(encoder[spec["type"]](spec, [args[0], args[1], 0]))
                     elif (spec["type"] in ["j", "u"] \
-                        and len(args) == 2 \
-                        and not (args[1].isdigit() \
-                                 or (args[1].startswith('0x') and set(args[1][2:]).issubset(set(string.hexdigits))))):
+                          and len(args) == 2 \
+                          and not is_num(args[1])):
                         target_label = args[1]
                         instrs_with_label.append((instr_name, len(instructions), target_label, line_num))
                         if spec["type"] == "u":
