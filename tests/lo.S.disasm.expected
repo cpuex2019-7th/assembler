@@ -1,0 +1,4 @@
+lui a0, 0
+addi a0, a0, 12
+jalr zero, ra, 0
+jalr zero, ra, 0

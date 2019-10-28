@@ -14,6 +14,14 @@ def exit_with_error(fmt):
 
 def is_num(s):
     return re.match(r'^(-)?(0x)?[0-9A-Fa-f][0-9A-Fa-f]*$', s) is not None
+
+def get_label_imm(labels, label, pc):
+    label_inside = re.match(r"^%lo\((.*)\)$", label)
+    if label_inside is not None:
+        label = label_inside.groups()[0]
+        return labels[label]
+    else:
+        return labels[label] - pc * 4    
     
 def asm_lines(lines):
     """
@@ -90,7 +98,7 @@ def asm_lines(lines):
                         # when the last operand is labelled value
                         target_label = args[len(args)-1]
                         instrs_with_label.append((instr_name, len(instructions), target_label, line_num))                        
-                        instructions.extend([0] * syntax_sugars[instr_name]['size'])
+                        instructions.extend(ss_spec["encoder"](args[:len(args)-1] + [0]))
                     else:
                         # when the operand is imm
                         instructions.extend(syntax_sugars[instr_name]['encoder'](args))
@@ -110,26 +118,16 @@ def asm_lines(lines):
         if target_label in labels:
             if instr_name in instruction_specs:
                 spec = instruction_specs[instr_name]
-                if spec["type"] in ["b"]:
-                    imm = labels[target_label] - i * 4
+                imm = get_label_imm(labels, target_label, i)
+                if spec["type"] in ["b", "i", "s"]:
                     instructions[i] |= encoder[spec["type"]](spec, ["x0", "x0", imm])
-                elif spec["type"] in ["i", "s"]:
-                    imm = labels[target_label]
-                    instructions[i] |= encoder[spec["type"]](spec, ["x0", "x0", imm])                    
                 elif spec["type"] in ["j", "u"]:
-                    imm = labels[target_label] - i * 4
                     instructions[i] |= encoder[spec["type"]](spec, ["x0", imm])
                 else:
                     exit_with_error("[-] thinking_face")
             elif instr_name in syntax_sugars:                
                 ss_spec = syntax_sugars[instr_name]
-                imm = 0
-                if ss_spec["type"] in ["j"]:
-                    imm = labels[target_label] - i * 4
-                elif ss_spec["type"] in ["i"]:
-                    imm = labels[target_label]
-                else:
-                    exit_with_error("[-] thinking_face")
+                imm = get_label_imm(labels, target_label, i)
                 imm_patches = ss_spec["encoder"](["x0"] * (ss_spec["arg_num"]-1) + [imm])
                 for offset in range(0, ss_spec["size"]):
                     instructions[i+offset] |= imm_patches[offset]
