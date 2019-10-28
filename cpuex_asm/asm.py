@@ -59,7 +59,9 @@ def asm_lines(lines):
             try:
                 if instr_name in instruction_specs:
                     spec = instruction_specs[instr_name]
-                    
+
+                    # here we detect the use of label.
+                    # if there's no use of label, we can encode it directly.
                     if (spec["type"] in ["b", "i", "s"] \
                         and len(args) == 3 \
                         and not is_num(args[2])):
@@ -80,13 +82,18 @@ def asm_lines(lines):
                     else:
                         # umm, here we got a weird metadata for the instruction ...
                         raise Exception
-                elif instr_name in syntax_sugars and syntax_sugars[instr_name]['arg_num'] == len(args):
-                    if instr_name == "j":
-                        target_label = args[0]
-                        instrs_with_label.append(("jal", len(instructions), target_label, line_num))
-                        instructions.append(0)
+                elif instr_name in syntax_sugars \
+                     and syntax_sugars[instr_name]['arg_num'] == len(args):                    
+                    ss_spec = syntax_sugars[instr_name]
+                    if len(args) == ss_spec['arg_num'] \
+                       and not is_num(args[len(args)-1]):
+                        # when the last operand is labelled value
+                        target_label = args[len(args)-1]
+                        instrs_with_label.append((instr_name, len(instructions), target_label, line_num))                        
+                        instructions.extend([0] * syntax_sugars[instr_name]['size'])
                     else:
-                        instructions.extend(syntax_sugars[instr_name]['encoder'](args))                    
+                        # when the operand is imm
+                        instructions.extend(syntax_sugars[instr_name]['encoder'](args))
                 else:
                     raise NotImplementedError
             except OverflowError:
@@ -102,18 +109,19 @@ def asm_lines(lines):
     for instr_name, i, target_label, line_num in instrs_with_label:
         if target_label in labels:
             imm = labels[target_label] - i * 4
-            spec = instruction_specs[instr_name]                
-            if instr_name == "j":
-                spec = instruction_specs["jal"]
-                instructions[i] = encoder[spec["type"]](spec, ["x0", imm])
-            elif spec["type"] in ["b", "i", "s"]:
-                spec = instruction_specs[instr_name]                
-                instructions[i] |= encoder[spec["type"]](spec, ["x0", "x0", imm])
-            elif spec["type"] in ["j", "u"]: # TODO: is this correct?
-                spec = instruction_specs[instr_name]                
-                instructions[i] |= encoder[spec["type"]](spec, ["x0", imm])
-            else:
-                exit_with_error("[-] label jumping with {} is not implemented yet. sorry.".format(instr_name))
+            if instr_name in instruction_specs:
+                spec = instruction_specs[instr_name]
+                if spec["type"] in ["b", "i", "s"]:
+                    instructions[i] |= encoder[spec["type"]](spec, ["x0", "x0", imm])
+                elif spec["type"] in ["j", "u"]: # TODO: is this correct?
+                    instructions[i] |= encoder[spec["type"]](spec, ["x0", imm])
+                else:
+                    exit_with_error("[-] thinking_face")
+            elif instr_name in syntax_sugars:
+                ss_spec = syntax_sugars[instr_name]
+                imm_patches = ss_spec["encoder"](["x0"] * (ss_spec["arg_num"]-1) + [imm])
+                for offset in range(0, ss_spec["size"]):
+                    instructions[i+offset] |= imm_patches[offset]
         else:
             exit_with_error("[-] invalid label found at {}: {}".format(line_num, target_label))
             
