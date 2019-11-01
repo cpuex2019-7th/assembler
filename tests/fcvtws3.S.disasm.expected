@@ -1,0 +1,4 @@
+lui t1, 787968
+addi t1, t1, 0
+fmvwx ft1, t1
+fcvtws a0, ft1
