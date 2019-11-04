@@ -143,7 +143,8 @@ def asm_lines(lines):
             
     # pack all instructions
     ################
-    return b''.join([struct.pack('<I', instr) for instr in instructions])    
+    assembled_code = b''.join([struct.pack('<I', instr) for instr in instructions])
+    return assembled_code, labels
 
 def asm_line(l):
     """
@@ -188,8 +189,11 @@ def main():
         print("{} <output binary name> <hoge.S> [<foobar.S> ...]".format(sys.argv[0]))
         exit(1)
 
+    mcode, labels = asm_files(sys.argv[2:])
     with open(sys.argv[1], 'wb') as f:
-        f.write(asm_files(sys.argv[2:]))
-
+        f.write(mcode)
+    with open(sys.argv[1] + '.symbols', 'w') as f:
+        f.write('\n'.join(map(lambda x: '{} {}'.format(x[0], str(x[1])), labels.items())))
+        
 if __name__ == '__main__':
     main()
