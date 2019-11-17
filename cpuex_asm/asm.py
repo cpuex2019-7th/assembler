@@ -6,7 +6,7 @@ import re
 from .instructions import instruction_specs
 from .encode import encoder
 from .constant import CONDITIONAL_JUMP_INSTRS
-from .syntax_sugars import syntax_sugars
+from .syntax_sugars import syntax_sugar_specs
 
 def exit_with_error(fmt):
     print(fmt)
@@ -22,13 +22,46 @@ def get_label(label):
     else:
         return label
     
-def get_label_imm(labels, label, pc):
+def get_label_imm(labels, label, current_offset):
     label_inside = re.match(r"^\%lo\((.*)\)$", label)
     if label_inside is not None:
         label = label_inside.groups()[0]
-        return labels[label]
+        return labels[label] * 4
     else:
-        return labels[label] - pc * 4    
+        return (labels[label] - current_offset) * 4
+
+def replace_label_by(args, imm):
+    return args[:-1] + [imm]
+
+def get_label_in_args(spec, args):
+    if(spec["type"] in ["b", "i", "s"] \
+       and len(args) == 3 \
+       and not is_num(args[2])):
+        return args[2]
+    elif (spec["type"] in ["j", "u"] \
+          and len(args) == 2 \
+          and not is_num(args[1])):
+        return args[1]
+    elif ('arg_num' in spec \
+          and len(args) == spec['arg_num'] \
+          and not is_num(args[len(args)-1])):
+        return args[len(args)-1]    
+    else:
+        return None
+
+def is_instr(instr_name):
+    return instr_name in instruction_specs
+
+def is_syntax_sugar(instr_name):
+    return instr_name in syntax_sugar_specs
+
+def get_spec(instr_name):
+    if is_instr(instr_name):
+        return instruction_specs[instr_name]
+    elif is_syntax_sugar(instr_name):
+        return syntax_sugar_specs[instr_name]
+    else:
+        return None
     
 def asm_lines(lines):
     """
@@ -45,11 +78,11 @@ def asm_lines(lines):
         rv32im machine codes in binary format.
     """
     
-    labels = {}  # key: symbol_name, value: offset
+    labels = {}  # key: symbol_name, value: offset    
     instructions = []
     instrs_with_label = []
 
-    # parse lines and emit machine codes
+    # parse lines
     ################
     for index, raw_l in enumerate(lines):
         # pre-processing
@@ -59,87 +92,98 @@ def asm_lines(lines):
             continue        
         components = list(map(lambda y: y.strip(), stripped_line.split()))
 
-        if components[0].startswith('.'): # directive
-            pass # TODO
-        elif components[0].endswith(':'): # labels
+        # if the line describes ...
+        if components[0].endswith(':'):
+            # labels
             label = components[0] [:-1]
-            offset = len(instructions) * 4
+            offset = len(instructions)
             if label in labels:
                 exit_with_error("[-] label name duplicated: {}".format(label))
             labels[label] = offset            
-        else: # instructions            
+        else:
+            # instructions            
             instr_name = components[0]
             args = list(map(lambda x: x.strip(), ' '.join(components[1:]).split(',')))
-            
+            spec = get_spec(instr_name)
+            if spec is None:
+                exit_with_error("[-] instruction not found at {}: {}".format(line_num,
+                                                                             instr_name))
+            target_label = get_label_in_args(spec, args)
             try:
-                if instr_name in instruction_specs:
-                    spec = instruction_specs[instr_name]
-
-                    # here we detect the use of label.
-                    # if there's no use of label, we can encode it directly.
-                    if (spec["type"] in ["b", "i", "s"] \
-                        and len(args) == 3 \
-                        and not is_num(args[2])):
-                        target_label = args[2]
-                        instrs_with_label.append((instr_name, len(instructions), target_label, line_num))
-                        instructions.append(encoder[spec["type"]](spec, [args[0], args[1], 0]))
-                    elif (spec["type"] in ["j", "u"] \
-                          and len(args) == 2 \
-                          and not is_num(args[1])):
-                        target_label = args[1]
-                        instrs_with_label.append((instr_name, len(instructions), target_label, line_num))
-                        if spec["type"] == "u":
-                            instructions.append(encoder[spec["type"]](spec, [args[0], 0]))
-                        else: # 
-                            instructions.append(encoder[spec["type"]](spec, [args[0], 0]))
-                    elif spec["type"] in encoder:
-                        instructions.append(encoder[spec["type"]](spec, args))
-                    else:
-                        # umm, here we got a weird metadata for the instruction ...
-                        raise Exception
-                elif instr_name in syntax_sugars \
-                     and syntax_sugars[instr_name]['arg_num'] == len(args):                    
-                    ss_spec = syntax_sugars[instr_name]
-                    if len(args) == ss_spec['arg_num'] \
-                       and not is_num(args[len(args)-1]):
-                        # when the last operand is labelled value
-                        target_label = args[len(args)-1]
-                        instrs_with_label.append((instr_name, len(instructions), target_label, line_num))                        
-                        instructions.extend(ss_spec["encoder"](args[:len(args)-1] + [0]))
-                    else:
-                        # when the operand is imm
-                        instructions.extend(syntax_sugars[instr_name]['encoder'](args))
-                else:
-                    raise NotImplementedError
+                if target_label != None:
+                    instrs_with_label.append([instr_name,
+                                              args,
+                                              len(instructions),
+                                              target_label,
+                                              line_num])
+                    instructions.append(0)
+                elif is_instr(instr_name):
+                    instructions.append(encoder[spec["type"]](spec, args))
+                elif is_syntax_sugar(instr_name): 
+                    instructions.extend(syntax_sugar_specs[instr_name]['encoder'](args))                    
             except OverflowError:
                 exit_with_error("[-] overflow occcuerd at {}".format(line_num))
             except IndexError:
                 exit_with_error("[-] invalid arguments for {} at {}".format(instr_name,
                                                                             line_num))
-            except NotImplementedError:                
-                exit_with_error("[-] instruction not found at {}: {}".format(line_num,
-                                                                             instr_name))                    
-    # resolve labels
+    # resolve instruction sizes
     ################
-    for instr_name, i, target_label, line_num in instrs_with_label:
-        if get_label(target_label) in labels:
-            if instr_name in instruction_specs:
-                spec = instruction_specs[instr_name]
-                imm = get_label_imm(labels, target_label, i)
-                if spec["type"] in ["b", "i", "s"]:
-                    instructions[i] |= encoder[spec["type"]](spec, ["x0", "x0", imm])
-                elif spec["type"] in ["j", "u"]:
-                    instructions[i] |= encoder[spec["type"]](spec, ["x0", imm])
-                else:
-                    exit_with_error("[-] thinking_face")
-            elif instr_name in syntax_sugars:                
-                ss_spec = syntax_sugars[instr_name]
-                imm = get_label_imm(labels, target_label, i)
-                imm_patches = ss_spec["encoder"](["x0"] * (ss_spec["arg_num"]-1) + [imm])
-                for offset in range(0, ss_spec["size"]):
-                    instructions[i+offset] |= imm_patches[offset]
-        else:
+    # here we assume that the bigger the imm is, the more space is used.
+
+    # first, we have to check the existance of labels.
+    for instr_with_label in instrs_with_label:
+        instr_name, args, offset, target_label, line_num = instr_with_label
+        if get_label(target_label) not in labels:
             exit_with_error("[-] invalid label found at {}: {}".format(line_num, target_label))
+            
+    # second, we have to fix the size of each syntax sugars.
+    syntax_sugars = list(map(lambda x: x + [1], filter(lambda x: is_syntax_sugar(x[0]), instrs_with_label)))
+    overflow = True
+    while overflow:
+        print(labels)
+        overflow = False
+        for i in range(0, len(syntax_sugars)):
+            instr_name, args, offset, target_label, line_num, current_size = syntax_sugars[i]
+            spec = get_spec(instr_name)
+            imm = get_label_imm(labels, target_label, offset)
+            args = replace_label_by(args, imm)
+            imm_patches = spec["encoder"](args)
+            if len(imm_patches) > current_size:
+                diff = len(imm_patches) - current_size                
+                for _ in range(0, diff):
+                    instructions.insert(offset+1, 0)
+                # update current_size
+                syntax_sugars[i][5] = len(imm_patches)
+                # update labels
+                for k in labels.keys():
+                    if labels[k] > offset:
+                        labels[k] += diff
+                # update offset of syntax sugars
+                for j in range(0, len(syntax_sugars)):
+                    if syntax_sugars[j][2] > offset:
+                        syntax_sugars[j][2] += diff
+                # update info for all instructions with label references
+                for j in range(0, len(instrs_with_label)):
+                    if instrs_with_label[j][2] > offset:
+                        instrs_with_label[j][2] += diff
+                # set overflow flag to resolve labels again
+                overflow = True
+                
+    # resolve labels and emit
+    ################
+    # after fixing the size of instructions, we can patch all the labels with imm!
+    for instr_with_label in instrs_with_label:
+        instr_name, args, offset, target_label, line_num = instr_with_label
+        if get_label(target_label) in labels:
+            spec = get_spec(instr_name)
+            imm = get_label_imm(labels, target_label, offset)
+            args = replace_label_by(args, imm)
+            if is_instr(instr_name):
+                instructions[offset] |= encoder[spec["type"]](spec, args)
+            else:
+                imm_patches = spec["encoder"](args)
+                for j in range(0, len(imm_patches)):
+                    instructions[offset+j] |= imm_patches[j]
             
     # pack all instructions
     ################
@@ -193,7 +237,7 @@ def main():
     with open(sys.argv[1], 'wb') as f:
         f.write(mcode)
     with open(sys.argv[1] + '.symbols', 'w') as f:
-        f.write('\n'.join(map(lambda x: '{} {}'.format(x[0], str(x[1])), labels.items())))
+        f.write('\n'.join(map(lambda x: '{} {}'.format(x[0], str(4 * x[1])), labels.items())))
         
 if __name__ == '__main__':
     main()

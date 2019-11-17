@@ -1,4 +1,3 @@
-lui t1, 0
-addi t1, t1, 100
+addi t1, zero, 100
 fcvtsw ft1, t1
 fmvxw a0, ft1

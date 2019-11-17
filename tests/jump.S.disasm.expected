@@ -1,7 +1,9 @@
 addi t0, zero, 1
-jal zero, 12
+jal zero, 20
+lui t3, 74565
+addi t3, t3, 1656
 addi t1, t1, 2
 jal zero, 12
 addi t1, zero, 3
-jal zero, -12
+jal zero, -20
 add a0, t0, t1

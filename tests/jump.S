@@ -2,6 +2,7 @@ label1:
     addi t0, zero, 1
     j label3
 label2:
+    li t3, 0x12345678
     addi t1, t1, 2
     j ret
 label3:
