@@ -73,12 +73,12 @@ def get_spec(instr_name):
         return None
 
 # utilities for encoding    
-def encode_by_spec(spec, args, line_num):
+def encode_by_spec(spec, args, line_num, options):
     try:
         if "encoder" in spec:
-            return (spec["encoder"])(spec, args)
+            return (spec["encoder"])(spec, args, options)
         elif "type" in spec:
-            return (encoder[spec["type"]])(spec, args)
+            return (encoder[spec["type"]])(spec, args, options)
         else:
             return None
     except OverflowError:
@@ -122,7 +122,7 @@ def quick_encode(lines):
                                         target_label,
                                         line_num,
                                         1]
-            imm_patches = [0] if has_label(parsed_instruction) else encode_by_spec(spec, args, line_num)
+            imm_patches = [0] if has_label(parsed_instruction) else encode_by_spec(spec, args, line_num, {"pc": len(instructions)})
             parsed_instruction[5] = len(imm_patches)
             
             instructions.extend(imm_patches)
@@ -139,9 +139,10 @@ def asm_instruction(parsed_instruction, labels = {}):
                                                label_to_imm(labels,
                                                             target_label,
                                                             offset)),
-                              line_num)
+                              line_num,
+                              {"pc": offset})
     else:
-        return encode_by_spec(spec, args, line_num)
+        return encode_by_spec(spec, args, line_num, {"pc": offset})
 
 # utilities for label resolution
 def update_instruction_sizes(labelled_instructions, instructions, labels):

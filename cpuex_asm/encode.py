@@ -1,29 +1,9 @@
 from .registers import register_to_int
-
-def to_int(s):
-    if isinstance(s, int):
-        return s
-    return int(s[2:], 16) if s.startswith("0x") else int(s)
-
-def bit_to_int(s, bitwidth):    
-    return s if s < 2 ** (bitwidth-1) else s - 2 ** bitwidth
-    
-def int_to_bit(s, bitwidth):
-    # here we assume MSB is for sign
-    s = to_int(s) 
-    if 0 <= s:
-        if s < 2 ** (bitwidth-1):
-            return s
-        else:
-            raise OverflowError
-    else: # s is a negative number
-        if 0 <= 2 ** (bitwidth-1) + s:
-            return 2 ** bitwidth + s
-        else:
-            raise OverflowError
+from .instructions import instruction_specs
+from .utils import to_int, bit_to_int, int_to_bit
         
 # rd, rs1, rs2 
-def encode_r(spec, args):
+def encode_r(spec, args, options):
     if ("rs2" in spec and len(args) == 2) or ("rs2" not in spec and len(args) == 3):
         rd = register_to_int(args[0])
         rs1 = register_to_int(args[1])
@@ -36,7 +16,7 @@ def encode_r(spec, args):
 
 
 # rd, rs1, imm
-def encode_i(spec, args):
+def encode_i(spec, args, options):
     if len(args) != 3:
         raise IndexError
     rd = register_to_int(args[0])
@@ -47,24 +27,44 @@ def encode_i(spec, args):
     ]
 
 # rs1, rs2, imm
-def encode_b(spec, args):
+def encode_b(spec, args, options):
     if len(args) != 3:
         raise IndexError
+
+    try:
+        rs1 = register_to_int(args[0])
+        rs2 = register_to_int(args[1])
+        imm = int_to_bit(args[2], 13)
     
-    rs1 = register_to_int(args[0])
-    rs2 = register_to_int(args[1])
-    imm = int_to_bit(args[2], 13)
-    
-    imm11 = (imm & (0b1 << 11)) >> 11
-    imm4to1 = (imm & 0b11110) >> 1
-    imm10to5 = (imm & 0b11111100000) >> 5
-    imm12 = (imm & (0b1 << 12)) >> 12
-    return [
-        spec["opcode"] | (imm11 << 7) | (imm4to1 << 8) | (spec["funct3"] << 12) | (rs1 << 15) | (rs2 << 20) | (imm10to5 << 25) | (imm12 << 31)
-    ]
+        imm11 = (imm & (0b1 << 11)) >> 11
+        imm4to1 = (imm & 0b11110) >> 1
+        imm10to5 = (imm & 0b11111100000) >> 5
+        imm12 = (imm & (0b1 << 12)) >> 12
+        return [
+            spec["opcode"] | (imm11 << 7) | (imm4to1 << 8) | (spec["funct3"] << 12) | (rs1 << 15) | (rs2 << 20) | (imm10to5 << 25) | (imm12 << 31)
+        ]
+    except OverflowError:
+        # li x31, (pc + imm)
+        # op rs1, rs2, +8
+        # jal zero, 8
+        # jalr zero, x31, 0
+        # ...        
+        imm_32 = int_to_bit(to_int(args[2])+to_int(options["pc"])*4, 32)
+        imm_addi = bit_to_int(imm_32 & 0xFFF, 12)
+        imm_lui = bit_to_int((imm_32-imm_addi) & 0xFFFFF000, 32) >> 12        
+        lui_spec = instruction_specs["lui"]
+        addi_spec = instruction_specs["addi"]    
+        jal_spec = instruction_specs["jal"]
+        jalr_spec = instruction_specs["jalr"]
+        return encoder[lui_spec["type"]](lui_spec, ["x31", imm_lui], {}) + \
+            encoder[addi_spec["type"]](addi_spec, ["x31", "x31", imm_addi], {}) +\
+            encoder[spec["type"]](spec, args[:2] + [8], {}) + \
+            encoder[jal_spec["type"]](jal_spec, ["x0", 8], {}) + \
+            encoder[jalr_spec["type"]](jalr_spec, ["x0", "x31", 0], {})
+        
 
 # rs2, rs1, imm
-def encode_s(spec, args):
+def encode_s(spec, args, options):
     if len(args) != 3:
         raise IndexError    
     # s* hoge, foo, bar
@@ -82,7 +82,7 @@ def encode_s(spec, args):
 
 # rd, imm
 # imm will be sll-ed by 12 
-def encode_u(spec, args):
+def encode_u(spec, args, options):
     if len(args) != 2:
         raise IndexError
     rd = register_to_int(args[0])
@@ -92,7 +92,7 @@ def encode_u(spec, args):
     ]
 
 # rd, imm
-def encode_j(spec, args):
+def encode_j(spec, args, options):
     if len(args) != 2:
         raise IndexError
     rd = register_to_int(args[0])
