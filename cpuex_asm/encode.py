@@ -44,6 +44,7 @@ def encode_b(spec, args, options):
             spec["opcode"] | (imm11 << 7) | (imm4to1 << 8) | (spec["funct3"] << 12) | (rs1 << 15) | (rs2 << 20) | (imm10to5 << 25) | (imm12 << 31)
         ]
     except OverflowError:
+        print("Long jump!", spec, args, options)
         # li x31, (pc + imm)
         # op rs1, rs2, +8
         # jal zero, 8
@@ -56,11 +57,11 @@ def encode_b(spec, args, options):
         addi_spec = instruction_specs["addi"]    
         jal_spec = instruction_specs["jal"]
         jalr_spec = instruction_specs["jalr"]
-        return encoder[lui_spec["type"]](lui_spec, ["x31", imm_lui], {}) + \
-            encoder[addi_spec["type"]](addi_spec, ["x31", "x31", imm_addi], {}) +\
+        return encoder[lui_spec["type"]](lui_spec, ["x30", imm_lui], {}) + \
+            encoder[addi_spec["type"]](addi_spec, ["x30", "x30", imm_addi], {}) +\
             encoder[spec["type"]](spec, args[:2] + [8], {}) + \
             encoder[jal_spec["type"]](jal_spec, ["x0", 8], {}) + \
-            encoder[jalr_spec["type"]](jalr_spec, ["x0", "x31", 0], {})
+            encoder[jalr_spec["type"]](jalr_spec, ["x0", "x30", 0], {})
         
 
 # rs2, rs1, imm
