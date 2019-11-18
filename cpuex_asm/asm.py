@@ -140,9 +140,9 @@ def asm_instruction(parsed_instruction, labels = {}):
                                                             target_label,
                                                             offset)),
                               line_num,
-                              {"pc": offset, "current_size": current_size})
+                              {"pc": offset, "current_size": current_size, "line_num": line_num})
     else:
-        return encode_by_spec(spec, args, line_num, {"pc": offset, "current_size": current_size})
+        return encode_by_spec(spec, args, line_num, {"pc": offset, "current_size": current_size, "line_num": line_num})
 
 # utilities for label resolution
 def update_instruction_sizes(labelled_instructions, instructions, labels):

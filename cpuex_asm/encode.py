@@ -1,7 +1,9 @@
+import sys
+
 from .registers import register_to_int
 from .instructions import instruction_specs
 from .utils import to_int, bit_to_int, int_to_bit
-        
+
 # rd, rs1, rs2 
 def encode_r(spec, args, options):
     if ("rs2" in spec and len(args) == 2) or ("rs2" not in spec and len(args) == 3):
@@ -44,7 +46,7 @@ def encode_b(spec, args, options):
             spec["opcode"] | (imm11 << 7) | (imm4to1 << 8) | (spec["funct3"] << 12) | (rs1 << 15) | (rs2 << 20) | (imm10to5 << 25) | (imm12 << 31)
         ]
     except OverflowError:
-        print("Long jump!", spec, args, options)
+        print("Long jump at {}: {} {} {}".format(options["line_num"], spec, args, options), file=sys.stderr)
         # li x31, (pc + imm)
         # op rs1, rs2, +8
         # jal zero, 8
