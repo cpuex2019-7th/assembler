@@ -195,8 +195,8 @@ def asm_lines(lines):
     ################    
     # first, we have to check the existance of labels.
     if any(list(map(lambda x: has_label(x) and not is_label_valid(x, labels),
-                    parsed_instructions))):
-        instr = next(filter(lambda x: not is_label_valid(x, labels), parsed_instructions))
+                       parsed_instructions))):
+        instr = next(filter(lambda x: has_label(x) and not is_label_valid(x, labels), parsed_instructions))
         target_label = instr[3]
         line_num = instr[4]
         exit_with_error("[-] invalid label found at {}: {}".format(line_num, target_label))
