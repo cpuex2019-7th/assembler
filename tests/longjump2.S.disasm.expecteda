@@ -1,9 +1,9 @@
-addi t0, zero, 1
+addi t0, zero, 0
 addi t1, zero, 1
 lui t5, 6
-addi t5, t5, -2028
-beq t0, t1, 8
-jal zero, 8
+addi t5, t5, -2012
+beq t0, t1, 8 ; jumps to 0x00000018
+jal zero, 8 ; jumps to 0x0000001c
 jalr zero, t5, 0
 addi a0, zero, 1
 jalr zero, ra, 0

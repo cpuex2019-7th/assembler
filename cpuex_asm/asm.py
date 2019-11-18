@@ -122,7 +122,7 @@ def quick_encode(lines):
                                         target_label,
                                         line_num,
                                         1]
-            imm_patches = [0] if has_label(parsed_instruction) else encode_by_spec(spec, args, line_num, {"pc": len(instructions)})
+            imm_patches = [0] if has_label(parsed_instruction) else asm_instruction(parsed_instruction)
             parsed_instruction[5] = len(imm_patches)
             
             instructions.extend(imm_patches)
@@ -140,9 +140,9 @@ def asm_instruction(parsed_instruction, labels = {}):
                                                             target_label,
                                                             offset)),
                               line_num,
-                              {"pc": offset})
+                              {"pc": offset, "current_size": current_size})
     else:
-        return encode_by_spec(spec, args, line_num, {"pc": offset})
+        return encode_by_spec(spec, args, line_num, {"pc": offset, "current_size": current_size})
 
 # utilities for label resolution
 def update_instruction_sizes(labelled_instructions, instructions, labels):

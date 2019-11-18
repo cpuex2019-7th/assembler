@@ -49,8 +49,10 @@ def encode_b(spec, args, options):
         # op rs1, rs2, +8
         # jal zero, 8
         # jalr zero, x31, 0
-        # ...        
-        imm_32 = int_to_bit(to_int(args[2])+to_int(options["pc"])*4, 32)
+        # ...
+        offset = to_int(args[2])
+        diff = 5 - options["current_size"]
+        imm_32 = int_to_bit(to_int(options["pc"])*4 + offset + 4 * diff, 32) if offset > 0 else int_to_bit(to_int(options["pc"])*4 + offset, 32)
         imm_addi = bit_to_int(imm_32 & 0xFFF, 12)
         imm_lui = bit_to_int((imm_32-imm_addi) & 0xFFFFF000, 32) >> 12        
         lui_spec = instruction_specs["lui"]
