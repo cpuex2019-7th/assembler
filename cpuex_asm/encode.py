@@ -47,25 +47,16 @@ def encode_b(spec, args, options):
         ]
     except OverflowError:
         print("Long jump at {}: {} {} {}".format(options["line_num"], spec, args, options), file=sys.stderr)
-        # li x31, (pc + imm)
-        # op rs1, rs2, +8
-        # jal zero, 8
-        # jalr zero, x31, 0
+        # (negcond) rs1, rs2, 8
+        # jal zero, label
         # ...
         offset = to_int(args[2])
-        diff = 5 - options["current_size"]
-        imm_32 = int_to_bit(to_int(options["pc"])*4 + offset + 4 * diff, 32) if offset > 0 else int_to_bit(to_int(options["pc"])*4 + offset, 32)
-        imm_addi = bit_to_int(imm_32 & 0xFFF, 12)
-        imm_lui = bit_to_int((imm_32-imm_addi) & 0xFFFFF000, 32) >> 12        
-        lui_spec = instruction_specs["lui"]
-        addi_spec = instruction_specs["addi"]    
+        diff = options["current_size"] - 1
+        imm = offset - 4 * diff if offset > 0 else offset - 4
+        negcond_spec = instruction_specs[spec["neg"]]
         jal_spec = instruction_specs["jal"]
-        jalr_spec = instruction_specs["jalr"]
-        return encoder[lui_spec["type"]](lui_spec, ["x30", imm_lui], {}) + \
-            encoder[addi_spec["type"]](addi_spec, ["x30", "x30", imm_addi], {}) +\
-            encoder[spec["type"]](spec, args[:2] + [8], {}) + \
-            encoder[jal_spec["type"]](jal_spec, ["x0", 8], {}) + \
-            encoder[jalr_spec["type"]](jalr_spec, ["x0", "x30", 0], {})
+        return encoder[negcond_spec["type"]](negcond_spec, args[:2] + [8], {}) + \
+            encoder[jal_spec["type"]](jal_spec, ["x0", imm], {})
         
 
 # rs2, rs1, imm

@@ -20,32 +20,38 @@ instruction_specs = {
     "beq" : {
         "type": "b",
         "opcode": 0b1100011,
-        "funct3": 0b000,        
+        "funct3": 0b000,
+        "neg": "bne",
     },
     "bne" : {
         "type": "b",
         "opcode": 0b1100011,
         "funct3": 0b001,        
+        "neg": "beq",
     },
     "blt" : {
         "type": "b",
         "opcode": 0b1100011,
         "funct3": 0b100,        
+        "neg": "bge",
     },
-    "bgt" : {
+    "bge" : {
         "type": "b",
         "opcode": 0b1100011,
         "funct3": 0b101,        
+        "neg": "blt",
     },
     "bltu" : {
         "type": "b",
         "opcode": 0b1100011,
         "funct3": 0b110,        
+        "neg": "bgeu",
     },
     "bgeu" : {
         "type": "b",
         "opcode": 0b1100011,
         "funct3": 0b111,        
+        "neg": "bltu",
     },
     "lb" : {
         "type": "i",

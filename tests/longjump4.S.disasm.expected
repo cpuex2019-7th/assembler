@@ -5631,9 +5631,6 @@ addi zero, zero, 0
 addi zero, zero, 0
 addi t0, zero, 1
 addi t1, zero, 2
-lui t5, 0
-addi t5, t5, 4
-beq t0, t1, 8
-jal zero, 8
-jalr zero, t5, 0
+bne t0, t1, 8
+jal zero, -22532
 addi a0, zero, 1
